@@ -85,14 +85,9 @@ Feel free to fork this project, open issues, or submit pull requests. Let’s em
 Need help or want to contribute ideas?
 
 - GitHub: [Lw-wells](https://github.com/Lw-wells)
-- Email: `wells.lincholmn@students.jkuat.ac.ke` *(replace this)*
+- Email: `wells.lincholmn@students.jkuat.ac.ke` 
 
 ---
 
-## 🧭 License
-
-This project is under the [MIT License](LICENSE).
-
----
 
 Built with ❤️ to support local skills and meaningful work.
