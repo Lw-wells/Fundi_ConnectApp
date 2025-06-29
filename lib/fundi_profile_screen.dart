@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FundiProfileScreen extends StatefulWidget {
-  const FundiProfileScreen({super.key});
-
   @override
   _FundiProfileScreenState createState() => _FundiProfileScreenState();
 }
@@ -15,128 +13,134 @@ class _FundiProfileScreenState extends State<FundiProfileScreen> {
   final _location = TextEditingController();
   final _bio = TextEditingController();
   final _phone = TextEditingController();
-  bool _isLoading = false;
+
+  final supabase = Supabase.instance.client;
 
   Future<void> _saveProfile() async {
-    final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
-    print('Current user: $user');
 
     if (user == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('User not authenticated.')));
+      ).showSnackBar(const SnackBar(content: Text('User not authenticated')));
       return;
     }
 
-    setState(() => _isLoading = true);
-
     try {
-      final response = await supabase.from('fundis').insert({
+      final response = await supabase.from('fundis').upsert({
         'user_id': user.id,
-        'full_name': _fullName.text.trim(),
-        'service': _service.text.trim(),
-        'location': _location.text.trim(),
-        'bio': _bio.text.trim(),
-        'phone': _phone.text.trim(),
-      }).execute();
+        'full_name': _fullName.text,
+        'service': _service.text,
+        'location': _location.text,
+        'bio': _bio.text,
+        'phone': _phone.text,
+      });
 
-      print('Response status: ${response.status}');
-      print('Response data: ${response.data}');
-
-      if (response.status == 201 || response.status == 200) {
+      if (response.error == null ||
+          response.status == 201 ||
+          response.status == 200) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Profile saved!')));
-
-        _fullName.clear();
-        _service.clear();
-        _location.clear();
-        _bio.clear();
-        _phone.clear();
-
-        Navigator.pop(context);
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to save profile.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${response.status}')));
       }
-    } catch (error) {
-      print('Exception: $error');
+    } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error: $error')));
-    } finally {
-      setState(() => _isLoading = false);
+      ).showSnackBar(SnackBar(content: Text('Unexpected error: $e')));
     }
-  }
-
-  @override
-  void dispose() {
-    _fullName.dispose();
-    _service.dispose();
-    _location.dispose();
-    _bio.dispose();
-    _phone.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Fundi Profile Setup')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _fullName,
-                decoration: const InputDecoration(labelText: 'Full Name'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter full name' : null,
-              ),
-              TextFormField(
-                controller: _service,
-                decoration: const InputDecoration(
-                  labelText: 'Service (e.g. Electrician)',
+      backgroundColor: Colors.deepPurple[50],
+      appBar: AppBar(
+        title: const Text('Fundi Profile Setup'),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                const Text(
+                  'Tell us about yourself',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
                 ),
-                validator: (value) => value == null || value.isEmpty
-                    ? 'Enter your service'
-                    : null,
-              ),
-              TextFormField(
-                controller: _location,
-                decoration: const InputDecoration(labelText: 'Location'),
-              ),
-              TextFormField(
-                controller: _bio,
-                decoration: const InputDecoration(labelText: 'Short Bio'),
-                maxLines: 2,
-              ),
-              TextFormField(
-                controller: _phone,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          _saveProfile();
-                        }
-                      },
-                child: _isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Save Profile'),
-              ),
-            ],
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _fullName,
+                  decoration: _inputDecoration('Full Name'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _service,
+                  decoration: _inputDecoration('Service (e.g. Electrician)'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _location,
+                  decoration: _inputDecoration('Location'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _bio,
+                  decoration: _inputDecoration('Short Bio'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _phone,
+                  keyboardType: TextInputType.phone,
+                  decoration: _inputDecoration('Phone Number'),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: _saveProfile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save Profile',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

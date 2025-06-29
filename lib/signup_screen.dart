@@ -9,56 +9,108 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  final _email = TextEditingController();
-  final _password = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   final supabase = Supabase.instance.client;
 
   Future<void> _signup() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
     try {
-      final res = await supabase.auth.signUp(
-        email: _email.text,
-        password: _password.text,
+      final response = await supabase.auth.signUp(
+        email: email,
+        password: password,
       );
 
-      if (res.user != null) {
+      if (response.user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Signup successful! Please log in.')),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text("Signup successful!")));
-        Navigator.pushReplacementNamed(context, '/login');
+        ).showSnackBar(const SnackBar(content: Text('Signup failed.')));
       }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Signup failed: $e")));
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Create Account")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _email,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _signup, child: const Text('Sign Up')),
-            TextButton(
-              onPressed: () => Navigator.pushNamed(context, '/login'),
-              child: const Text("Already have an account? Login"),
-            ),
-          ],
+      backgroundColor: Colors.deepPurple[50],
+      appBar: AppBar(
+        title: const Text('Create Account'),
+        backgroundColor: Colors.deepPurple,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Join FundiConnect',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.deepPurple,
+                ),
+              ),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _emailController,
+                textAlign: TextAlign.center,
+                decoration: _inputDecoration('Email'),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                textAlign: TextAlign.center,
+                decoration: _inputDecoration('Password'),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _signup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurple,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 40,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Sign Up', style: TextStyle(fontSize: 18)),
+              ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+                child: const Text("Already have an account? Log in"),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }
