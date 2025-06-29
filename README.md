@@ -1,10 +1,6 @@
-# fundiconnect
-
-A new Flutter project.
+# 🛠️ Fundi Connect
 
 ## Getting Started
-
-# 🛠️ Fundi Connect
 
 A **mobile-first web app** designed to make it easy for clients to find, chat with, and book trusted local professionals (fundis) like plumbers, electricians, cleaners, tutors, and more. Fundis register to showcase their services and grow their client base, while clients enjoy safety, convenience, and control.
 
